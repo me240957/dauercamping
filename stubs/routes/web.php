@@ -21,16 +21,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Stellplätze
-    Route::resource('stellplaetze', StellplatzController::class);
+    Route::resource('stellplaetze', StellplatzController::class)
+        ->parameters(['stellplaetze' => 'stellplatz']);
 
     // Pächter
-    Route::resource('paechter', PaechterController::class);
+    Route::resource('paechter', PaechterController::class)
+        ->parameters(['paechter' => 'paechter']);
 
     // Verträge
-    Route::resource('vertraege', VertragController::class);
+    Route::resource('vertraege', VertragController::class)
+        ->parameters(['vertraege' => 'vertrag']);
 
     // Zahlungen
-    Route::resource('zahlungen', ZahlungController::class);
+    Route::resource('zahlungen', ZahlungController::class)
+        ->parameters(['zahlungen' => 'zahlung']);
     Route::patch('zahlungen/{zahlung}/bezahlt', [ZahlungController::class, 'alsBezahltMarkieren'])
         ->name('zahlungen.bezahlt');
 });

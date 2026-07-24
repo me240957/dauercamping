@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Vertrag #' . $vertrag->id)
-@section('page-title', 'Vertrag – ' . $vertrag->paechter->voller_name . ' / Stellplatz ' . $vertrag->stellplatz->nummer)
+@section('page-title', 'Vertrag #' . $vertrag->id . ' – ' . ($vertrag->paechter?->voller_name ?? '–') . ' / Stellplatz ' . ($vertrag->stellplatz?->nummer ?? '–'))
 @section('header-actions')
     <a href="{{ route('vertraege.index') }}" class="text-sm text-gray-500 hover:text-gray-700 mr-2">← Zurück</a>
     <a href="{{ route('vertraege.edit', $vertrag) }}"
