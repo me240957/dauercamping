@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaechterController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StellplatzController;
+use App\Http\Controllers\UebernachtungController;
 use App\Http\Controllers\VertragController;
 use App\Http\Controllers\ZahlungController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->parameters(['zahlungen' => 'zahlung']);
     Route::patch('zahlungen/{zahlung}/bezahlt', [ZahlungController::class, 'alsBezahltMarkieren'])
         ->name('zahlungen.bezahlt');
+
+    // Übernachtungen – eigene Routen VOR Resource-Route
+    Route::get('uebernachtungen/statistik', [UebernachtungController::class, 'statistik'])
+        ->name('uebernachtungen.statistik');
+    Route::get('uebernachtungen/kalender', [UebernachtungController::class, 'kalender'])
+        ->name('uebernachtungen.kalender');
+    Route::resource('uebernachtungen', UebernachtungController::class)
+        ->parameters(['uebernachtungen' => 'uebernachtung'])
+        ->except(['show']);
 });
 
 require __DIR__ . '/auth.php';

@@ -48,6 +48,11 @@ class Vertrag extends Model
         return $this->hasMany(Zahlung::class);
     }
 
+    public function uebernachtungen()
+    {
+        return $this->hasMany(Uebernachtung::class);
+    }
+
     // ── Scopes ───────────────────────────────────────────────────────────────
 
     public function scopeAktiv($query)
