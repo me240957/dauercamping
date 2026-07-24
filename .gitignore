@@ -1,0 +1,16 @@
+# Laravel-Instanz (wird durch setup.sh generiert)
+laravel/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
