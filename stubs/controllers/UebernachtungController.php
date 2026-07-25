@@ -28,7 +28,7 @@ class UebernachtungController extends Controller
             $query->whereYear('datum', $jahr);
         }
 
-        $uebernachtungen = $query->paginate(25)->withQueryString();
+        $uebernachtungen = $query->paginate(7)->withQueryString();
 
         $jahre = Uebernachtung::selectRaw('DISTINCT YEAR(datum) as jahr')
             ->orderByDesc('jahr')
@@ -106,7 +106,7 @@ class UebernachtungController extends Controller
                 MONTH(datum) as monat,
                 SUM(anzahl_naechte) as naechte,
                 SUM(anzahl_personen) as personen,
-                SUM(anzahl_naechte * anzahl_personen) as personennaechte
+                SUM(anzahl_naechte * anzahl_personen) as pn_summe
             ')
             ->whereYear('datum', $jahr)
             ->groupByRaw('MONTH(datum)')

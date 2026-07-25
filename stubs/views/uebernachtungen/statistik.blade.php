@@ -41,27 +41,69 @@
     </div>
 </div>
 
-{{-- Monatsübersicht (Balkendiagramm) --}}
+{{-- Monatsübersicht – Chart.js Balkendiagramm --}}
 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6">
-    <h3 class="text-sm font-semibold text-gray-900 mb-4">Nächte pro Monat</h3>
-    <div class="flex items-end gap-2 h-40">
-        @foreach($monate as $nr => $name)
-            @php
-                $data = $proMonat->get($nr);
-                $naechte = $data->naechte ?? 0;
-                $hoehe = $maxNaechte > 0 ? round(($naechte / $maxNaechte) * 100) : 0;
-            @endphp
-            <div class="flex-1 flex flex-col items-center gap-1">
-                <span class="text-xs font-semibold text-gray-700">{{ $naechte ?: '' }}</span>
-                <div class="w-full bg-emerald-500 rounded-t transition-all"
-                     style="height: {{ max($hoehe, $naechte > 0 ? 4 : 0) }}%;"
-                     title="{{ $name }}: {{ $naechte }} Nächte, {{ $data->personennaechte ?? 0 }} Personennächte">
-                </div>
-                <span class="text-xs text-gray-400">{{ substr($name, 0, 3) }}</span>
-            </div>
-        @endforeach
+    <h3 class="text-sm font-semibold text-gray-900 mb-4">Nächte &amp; Personennächte pro Monat – {{ $jahr }}</h3>
+    <div class="relative" style="height: 260px;">
+        <canvas id="monatsChart"></canvas>
     </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+    const labels = @json(array_values($monate));
+    const naechte = @json(array_map(fn($nr) => (int)($proMonat->get($nr)?->naechte ?? 0), array_keys($monate)));
+    const personennaechte = @json(array_map(fn($nr) => (int)($proMonat->get($nr)?->pn_summe ?? 0), array_keys($monate)));
+
+    const ctx = document.getElementById('monatsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Nächte',
+                    data: naechte,
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    borderColor: 'rgba(5, 150, 105, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { font: { size: 12 }, usePointStyle: true },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}`,
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11 } },
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: { size: 11 },
+                    },
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                },
+            },
+        },
+    });
+})();
+</script>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -156,7 +198,7 @@
                         {{ $data->personen ?? '–' }}
                     </td>
                     <td class="px-5 py-2 text-sm text-right {{ $data ? 'font-semibold text-purple-700' : 'text-gray-300' }}">
-                        {{ $data->personennaechte ?? '–' }}
+                        {{ $data->pn_summe ?? '–' }}
                     </td>
                 </tr>
             @endforeach
