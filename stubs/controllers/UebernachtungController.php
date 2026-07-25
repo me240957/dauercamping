@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Uebernachtung;
 use App\Models\Vertrag;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -93,6 +94,44 @@ class UebernachtungController extends Controller
         $uebernachtung->delete();
         return redirect()->route('uebernachtungen.index')
             ->with('success', 'Übernachtung wurde gelöscht.');
+    }
+
+    // ── PDF-Export ───────────────────────────────────────────────────────────
+
+    public function exportPdf(Request $request)
+    {
+        $query = Uebernachtung::with(['vertrag.paechter', 'vertrag.stellplatz'])
+            ->orderBy('datum');
+
+        if ($search = $request->get('search')) {
+            $query->whereHas('vertrag.paechter', function ($q) use ($search) {
+                $q->where('vorname', 'like', "%{$search}%")
+                  ->orWhere('nachname', 'like', "%{$search}%");
+            })->orWhereHas('vertrag.stellplatz', function ($q) use ($search) {
+                $q->where('nummer', 'like', "%{$search}%");
+            });
+        }
+
+        if ($jahr = $request->get('jahr')) {
+            $query->whereYear('datum', $jahr);
+        }
+
+        $uebernachtungen = $query->get();
+
+        $summe = [
+            'naechte'        => $uebernachtungen->sum('anzahl_naechte'),
+            'personen'       => $uebernachtungen->sum('anzahl_personen'),
+            'personennaechte'=> $uebernachtungen->sum('personennaechte'),
+        ];
+
+        $titel = 'Übernachtungen' . ($jahr ? ' ' . $jahr : '');
+
+        $pdf = Pdf::loadView('uebernachtungen.pdf', compact('uebernachtungen', 'summe', 'titel', 'jahr'))
+            ->setPaper('a4', 'landscape');
+
+        $dateiname = 'uebernachtungen' . ($jahr ? '-' . $jahr : '') . '.pdf';
+
+        return $pdf->download($dateiname);
     }
 
     // ── Statistik ─────────────────────────────────────────────────────────────

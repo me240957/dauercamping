@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\BenutzerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DokumentController;
 use App\Http\Controllers\PaechterController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StellplatzController;
@@ -39,11 +41,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('zahlungen/{zahlung}/bezahlt', [ZahlungController::class, 'alsBezahltMarkieren'])
         ->name('zahlungen.bezahlt');
 
+    // Benutzerverwaltung (nur Admin – Schutz im Controller)
+    Route::resource('benutzer', BenutzerController::class)
+        ->parameters(['benutzer' => 'benutzer'])
+        ->except(['show']);
+
+    // Dokumente
+    Route::get('dokumente/{dokument}/download', [DokumentController::class, 'download'])
+        ->name('dokumente.download');
+    Route::resource('dokumente', DokumentController::class)
+        ->parameters(['dokumente' => 'dokument']);
+
     // Übernachtungen – eigene Routen VOR Resource-Route
     Route::get('uebernachtungen/statistik', [UebernachtungController::class, 'statistik'])
         ->name('uebernachtungen.statistik');
     Route::get('uebernachtungen/kalender', [UebernachtungController::class, 'kalender'])
         ->name('uebernachtungen.kalender');
+    Route::get('uebernachtungen/pdf', [UebernachtungController::class, 'exportPdf'])
+        ->name('uebernachtungen.pdf');
     Route::resource('uebernachtungen', UebernachtungController::class)
         ->parameters(['uebernachtungen' => 'uebernachtung'])
         ->except(['show']);
