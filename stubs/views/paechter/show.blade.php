@@ -3,6 +3,21 @@
 @section('page-title', $paechter->voller_name)
 @section('header-actions')
     <a href="{{ route('paechter.index') }}" class="text-sm text-gray-500 hover:text-gray-700 mr-2">← Zurück</a>
+    {{-- Jahresabrechnung PDF --}}
+    <form method="GET" action="{{ route('paechter.jahresabrechnung', $paechter) }}" class="inline-flex items-center gap-1">
+        <select name="jahr" class="border border-gray-300 rounded-md text-sm px-2 py-1.5 focus:ring-emerald-500 focus:border-emerald-500">
+            @for($j = now()->year; $j >= now()->year - 5; $j--)
+                <option value="{{ $j }}">{{ $j }}</option>
+            @endfor
+        </select>
+        <button type="submit"
+                class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors">
+            <svg class="h-4 w-4 mr-1.5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            Jahresabrechnung
+        </button>
+    </form>
     <a href="{{ route('paechter.edit', $paechter) }}"
        class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-md hover:bg-emerald-700 transition-colors">
         Bearbeiten

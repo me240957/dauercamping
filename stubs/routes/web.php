@@ -28,6 +28,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->parameters(['stellplaetze' => 'stellplatz']);
 
     // Pächter
+    Route::get('paechter/{paechter}/jahresabrechnung', [PaechterController::class, 'jahresabrechnung'])
+        ->name('paechter.jahresabrechnung');
     Route::resource('paechter', PaechterController::class)
         ->parameters(['paechter' => 'paechter']);
 

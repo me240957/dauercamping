@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Paechter;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class PaechterController extends Controller
@@ -87,6 +88,52 @@ class PaechterController extends Controller
 
         return redirect()->route('paechter.show', $paechter)
             ->with('success', 'Pächter wurde aktualisiert.');
+    }
+
+    public function jahresabrechnung(Request $request, Paechter $paechter)
+    {
+        $jahr = (int) $request->get('jahr', now()->year);
+
+        // Alle Verträge des Pächters laden
+        $paechter->load([
+            'vertraege.stellplatz',
+            'vertraege.zahlungen' => fn($q) => $q->where('jahr', $jahr)->orderBy('faellig_am'),
+            'vertraege.uebernachtungen' => fn($q) => $q->whereYear('datum', $jahr)->orderBy('datum'),
+        ]);
+
+        // Nur Verträge die im Jahr aktiv waren
+        $vertraege = $paechter->vertraege->filter(function ($v) use ($jahr) {
+            $beginn = $v->beginn?->year ?? 0;
+            $ende   = $v->ende?->year   ?? 9999;
+            return $beginn <= $jahr && $ende >= $jahr;
+        });
+
+        // Jahres-Summen
+        $summen = [
+            'zahlungen_bezahlt' => 0,
+            'zahlungen_offen'   => 0,
+            'naechte'           => 0,
+            'personennaechte'   => 0,
+        ];
+
+        foreach ($vertraege as $v) {
+            foreach ($v->zahlungen as $z) {
+                if ($z->status === 'bezahlt') $summen['zahlungen_bezahlt'] += $z->betrag;
+                else                          $summen['zahlungen_offen']   += $z->betrag;
+            }
+            foreach ($v->uebernachtungen as $u) {
+                $summen['naechte']        += $u->anzahl_naechte;
+                $summen['personennaechte'] += $u->personennaechte;
+            }
+        }
+
+        $pdf = Pdf::loadView('paechter.jahresabrechnung_pdf', compact(
+            'paechter', 'vertraege', 'jahr', 'summen'
+        ))->setPaper('a4', 'portrait');
+
+        $dateiname = 'jahresabrechnung-' . $paechter->nachname . '-' . $jahr . '.pdf';
+
+        return $pdf->download($dateiname);
     }
 
     public function destroy(Paechter $paechter)
